@@ -1,4 +1,4 @@
-const CACHE = 'hanzi-cards-v1';
+const CACHE = 'hanzi-cards-v2';
 const ASSETS = ['./index.html', './flashcards-data.js', './support.js', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -13,12 +13,13 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
+// Network-first: always try to fetch fresh files when online; fall back to cache offline.
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+    fetch(e.request).then(res => {
       const resClone = res.clone();
       caches.open(CACHE).then(cache => cache.put(e.request, resClone));
       return res;
-    }).catch(() => cached))
+    }).catch(() => caches.match(e.request))
   );
 });
