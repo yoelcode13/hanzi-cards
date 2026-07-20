@@ -32,14 +32,12 @@
   @media (prefers-reduced-motion: reduce){
     .flip-card{ transition:none !important; }
   }
-  @media (max-width: 480px){
-    .app-header{ flex-wrap:wrap; row-gap:12px; }
-    .app-nav{ flex:1 1 100%; justify-content:flex-start; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    .app-nav button{ flex-shrink:0; }
-  }
+  .app-nav{ overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .app-nav::-webkit-scrollbar{ display:none; }
+  .app-nav button{ flex-shrink:0; }
 </style>
 </helmet>
-<div style="min-height:100vh; background:{{ theme.bg }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; -webkit-font-smoothing:antialiased; transition:background 0.25s ease, color 0.25s ease;">
+<div style="min-height:100vh; overflow-x:hidden; background:{{ theme.bg }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; -webkit-font-smoothing:antialiased; transition:background 0.25s ease, color 0.25s ease;">
 <div style="max-width:640px; margin:0 auto; padding:32px 20px 64px; position:relative;">
 
   <header class="app-header" style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid {{ theme.ruleLight }};">
@@ -47,7 +45,7 @@
       <span style="font-family:'Noto Serif SC',serif; font-weight:900; font-size:30px; color:{{ theme.seal }}; line-height:1;">字</span>
       <span style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:{{ theme.inkSoft }};">Hanzi Cards</span>
     </div>
-    <div style="display:flex; align-items:center; gap:14px;">
+    <div style="display:flex; align-items:center; gap:14px; min-width:0;">
       <label style="display:flex; align-items:center; cursor:pointer;" title="Toggle dark mode">
         <input type="checkbox" checked="{{ darkMode }}" onChange="{{ onToggleDarkMode }}" style="position:absolute; opacity:0; width:1px; height:1px;">
         <span style="display:block; width:38px; height:21px; border-radius:11px; background:{{ toggleTrackBg }}; border:1px solid {{ theme.rule }}; position:relative; transition:background 0.2s ease;">
