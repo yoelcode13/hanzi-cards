@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#A8341F">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  @keyframes stampIt{
+    0%{ opacity:0; transform: translate(-50%,-50%) scale(2.8) rotate(-14deg); }
+    35%{ opacity:0.95; transform: translate(-50%,-50%) scale(1) rotate(-14deg); }
+    75%{ opacity:0.95; transform: translate(-50%,-50%) scale(1) rotate(-14deg); }
+    100%{ opacity:0; transform: translate(-50%,-50%) scale(0.94) rotate(-14deg); }
+  }
+  @keyframes burstOut{
+    0%{ transform: translate(-50%,-50%) translate(0,0) scale(1); opacity:1; }
+    100%{ transform: translate(-50%,-50%) translate(var(--tx), var(--ty)) scale(0.25); opacity:0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .flip-card{ transition:none !important; }
+  }
+  @media (max-width: 480px){
+    .app-header{ flex-wrap:wrap; row-gap:12px; }
+    .app-nav{ flex:1 1 100%; justify-content:flex-start; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .app-nav button{ flex-shrink:0; }
+  }
+</style>
+</helmet>
+<div style="min-height:100vh; background:{{ theme.bg }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; -webkit-font-smoothing:antialiased; transition:background 0.25s ease, color 0.25s ease;">
+<div style="max-width:640px; margin:0 auto; padding:32px 20px 64px; position:relative;">
+
+  <header class="app-header" style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid {{ theme.ruleLight }};">
+    <div style="display:flex; align-items:baseline; gap:10px;">
+      <span style="font-family:'Noto Serif SC',serif; font-weight:900; font-size:30px; color:{{ theme.seal }}; line-height:1;">字</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:{{ theme.inkSoft }};">Hanzi Cards</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <label style="display:flex; align-items:center; cursor:pointer;" title="Toggle dark mode">
+        <input type="checkbox" checked="{{ darkMode }}" onChange="{{ onToggleDarkMode }}" style="position:absolute; opacity:0; width:1px; height:1px;">
+        <span style="display:block; width:38px; height:21px; border-radius:11px; background:{{ toggleTrackBg }}; border:1px solid {{ theme.rule }}; position:relative; transition:background 0.2s ease;">
+          <span style="position:absolute; top:1px; left:{{ toggleThumbLeft }}px; width:17px; height:17px; border-radius:50%; background:{{ theme.card }}; box-shadow:0 1px 3px {{ theme.shadow }}; transition:left 0.2s ease; display:flex; align-items:center; justify-content:center; font-size:10px;">{{ toggleThumbGlyph }}</span>
+        </span>
+      </label>
+      <nav class="app-nav" style="display:flex; gap:6px;">
+        <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="4">
+          <button onClick="{{ item.onClick }}" style-hover="border-color:{{ theme.seal }}; color:{{ theme.seal }};" style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.07em; text-transform:uppercase; background:{{ item.bg }}; border:1px solid {{ item.border }}; color:{{ item.color }}; padding:8px 14px; border-radius:20px; cursor:pointer; transition:all 0.15s ease;">{{ item.label }}</button>
+        </sc-for>
+      </nav>
+    </div>
+  </header>
+
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px;">
+    <div style="display:flex; gap:16px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:{{ theme.inkSoft }};">
+      <sc-for list="{{ statsItems }}" as="s" hint-placeholder-count="3">
+        <span><b style="color:{{ theme.ink }}; font-weight:700;">{{ s.value }}</b> {{ s.label }}</span>
+      </sc-for>
+    </div>
+    <div style="position:relative; width:52px; height:52px; flex-shrink:0;" title="Learned progress in this deck">
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="21" fill="none" stroke="{{ theme.ruleLight }}" stroke-width="5"></circle>
+        <circle cx="26" cy="26" r="21" fill="none" stroke="{{ theme.jade }}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{ ringCircumference }}" stroke-dashoffset="{{ ringOffset }}" transform="rotate(-90 26 26)" style="transition:stroke-dashoffset 0.4s ease;"></circle>
+      </svg>
+      <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:{{ theme.jade }};">{{ ringPercent }}%</div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:24px;">
+    <label style="font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ theme.inkSoft }};">Deck</label>
+    <select value="{{ currentDeck }}" onChange="{{ onDeckChange }}" style="flex:1; max-width:280px; padding:9px 14px; border:1px solid {{ theme.rule }}; border-radius:20px; background:{{ theme.card }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14px; cursor:pointer;">
+      <sc-for list="{{ deckOptions }}" as="d" hint-placeholder-count="2">
+        <option value="{{ d.value }}">{{ d.label }}</option>
+      </sc-for>
+    </select>
+  </div>
+
+  <sc-if value="{{ isReview }}" hint-placeholder-val="{{ true }}">
+  <section style="display:flex; flex-direction:column; align-items:center; min-height:480px; justify-content:center; position:relative;">
+    <sc-if value="{{ hasReviewCard }}" hint-placeholder-val="{{ true }}">
+    <div style="width:100%; max-width:440px;">
+      <div style="perspective:1600px; width:100%;">
+        <div class="flip-card" onClick="{{ onFlipCard }}" style="position:relative; width:100%; aspect-ratio:3/3.6; transform-style:preserve-3d; -webkit-transform-style:preserve-3d; transition:{{ reviewFlipTransition }}; cursor:pointer; transform:{{ reviewFlipTransform }};">
+          <div style="position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; visibility:{{ reviewFrontVisibility }}; border-radius:16px; background:{{ theme.card }}; border:1px solid {{ theme.ruleLight }}; box-shadow:0 20px 44px -14px {{ theme.shadow }}, 0 2px 10px -2px {{ theme.shadow }}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center;">
+            <button onClick="{{ onSpeakReview }}" title="{{ reviewCard.speakTitle }}" style="position:absolute; top:16px; right:16px; background:none; border:1px solid {{ theme.rule }}; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ theme.seal }}; font-size:15px;">♪</button>
+            <div style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:clamp(64px,16vw,108px); line-height:1; color:{{ theme.ink }}; letter-spacing:0.02em;">{{ reviewCard.hanzi }}</div>
+            <div style="margin-top:22px; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:{{ theme.inkFaint }};">Tap to reveal</div>
+          </div>
+          <div style="position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; visibility:{{ reviewBackVisibility }}; transform:rotateY(180deg); border-radius:16px; background:{{ theme.card }}; border:1px solid {{ theme.ruleLight }}; box-shadow:0 20px 44px -14px {{ theme.shadow }}, 0 2px 10px -2px {{ theme.shadow }}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center;">
+            <button onClick="{{ onSpeakReview }}" title="{{ reviewCard.speakTitle }}" style="position:absolute; top:16px; right:16px; background:none; border:1px solid {{ theme.rule }}; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ theme.seal }}; font-size:15px;">♪</button>
+            <div style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:46px; color:{{ theme.ink }}; margin-bottom:14px;">{{ reviewCard.hanzi }}</div>
+            <svg width="64" height="10" viewBox="0 0 64 10" style="margin:8px 0 12px; opacity:0.6;"><path d="M2 6 Q 16 2, 32 5 T 62 4" fill="none" stroke="{{ theme.seal }}" stroke-width="2.4" stroke-linecap="round"></path></svg>
+            <div style="font-size:24px; color:{{ theme.seal }}; font-style:italic; margin-bottom:8px;">{{ reviewCard.pinyin }}</div>
+            <div style="font-size:19px; color:{{ theme.ink }}; max-width:300px;">{{ reviewCard.meaning }}</div>
+            <sc-if value="{{ reviewCard.hasLiteral }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:{{ theme.inkFaint }}; margin-top:10px; max-width:300px; font-style:italic;">{{ reviewCard.literal }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ isFlipped }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:100%; margin-top:28px;">
+          <sc-for list="{{ rateOptions }}" as="r" hint-placeholder-count="4">
+            <button onClick="{{ r.onClick }}" style-hover="transform:translateY(-2px);" style="font-family:'JetBrains Mono',monospace; padding:14px 6px; border-radius:12px; border:1px solid {{ r.border }}; background:{{ r.bg }}; cursor:pointer; text-align:center; transition:transform 0.12s ease;">
+              <span style="display:block; font-size:11.5px; letter-spacing:0.05em; text-transform:uppercase; font-weight:700; color:{{ r.color }};">{{ r.label }}</span>
+              <span style="display:block; font-size:10px; color:{{ theme.inkFaint }}; margin-top:3px;">{{ r.interval }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="margin-top:18px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:{{ theme.inkFaint }}; letter-spacing:0.06em; text-align:center;">space to flip · 1–4 to rate · ♪ to hear it · {{ queueLeftText }}</div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ noReviewCard }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center; color:{{ theme.inkSoft }}; max-width:340px;">
+        <span style="font-family:'Noto Serif SC',serif; font-size:56px; color:{{ theme.jade }}; display:block; margin-bottom:14px;">休</span>
+        <h2 style="font-family:'Source Serif 4',serif; font-weight:600; margin:0 0 8px; color:{{ theme.ink }};">All caught up</h2>
+        <p style="font-size:14.5px; line-height:1.6; margin:0;">No cards are due right now. Add a new word, or come back later — spaced repetition works best with patience.</p>
+      </div>
+    </sc-if>
+
+    <sc-for list="{{ particles }}" as="p" hint-placeholder-count="0">
+      <div style="--tx:{{ p.tx }}px; --ty:{{ p.ty }}px; position:absolute; top:50%; left:50%; width:9px; height:9px; border-radius:50%; background:{{ p.color }}; pointer-events:none; animation:burstOut 850ms ease-out forwards; animation-delay:{{ p.delay }}ms;"></div>
+    </sc-for>
+    <sc-if value="{{ sealShow }}" hint-placeholder-val="{{ false }}">
+      <svg viewBox="0 0 120 120" style="position:fixed; top:50%; left:50%; width:140px; height:140px; transform:translate(-50%,-50%) scale(1) rotate(-14deg); pointer-events:none; z-index:50; animation:stampIt 0.6s cubic-bezier(.2,1.4,.4,1) forwards;">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="{{ theme.seal }}" stroke-width="6"></circle>
+        <text x="60" y="72" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="46" font-weight="900" fill="{{ theme.seal }}">記</text>
+      </svg>
+    </sc-if>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isLearn }}" hint-placeholder-val="{{ false }}">
+  <section>
+    <input type="text" value="{{ learnSearchTerm }}" onChange="{{ onLearnSearchChange }}" placeholder="Search hanzi, pinyin, or meaning…" style="width:100%; margin-bottom:22px; padding:11px 16px; border:1px solid {{ theme.rule }}; border-radius:10px; background:{{ theme.card }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14.5px;">
+    <div style="display:flex; flex-direction:column; align-items:center; min-height:480px; justify-content:center;">
+      <sc-if value="{{ hasLearnCard }}" hint-placeholder-val="{{ true }}">
+      <div style="width:100%; max-width:440px;">
+        <div style="perspective:1600px; width:100%;">
+          <div class="flip-card" onClick="{{ onFlipLearnCard }}" style="position:relative; width:100%; aspect-ratio:3/3.6; transform-style:preserve-3d; -webkit-transform-style:preserve-3d; transition:transform 0.5s cubic-bezier(.4,.2,.2,1); cursor:pointer; transform:{{ learnFlipTransform }};">
+            <div style="position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; visibility:{{ learnFrontVisibility }}; border-radius:16px; background:{{ theme.card }}; border:1px solid {{ theme.ruleLight }}; box-shadow:0 20px 44px -14px {{ theme.shadow }}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center;">
+              <button onClick="{{ onSpeakLearn }}" title="{{ learnCard.speakTitle }}" style="position:absolute; top:16px; right:16px; background:none; border:1px solid {{ theme.rule }}; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ theme.seal }}; font-size:15px;">♪</button>
+              <div style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:clamp(64px,16vw,108px); line-height:1; color:{{ theme.ink }};">{{ learnCard.hanzi }}</div>
+              <div style="margin-top:22px; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:{{ theme.inkFaint }};">Tap to reveal</div>
+            </div>
+            <div style="position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; visibility:{{ learnBackVisibility }}; transform:rotateY(180deg); border-radius:16px; background:{{ theme.card }}; border:1px solid {{ theme.ruleLight }}; box-shadow:0 20px 44px -14px {{ theme.shadow }}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center;">
+              <button onClick="{{ onSpeakLearn }}" title="{{ learnCard.speakTitle }}" style="position:absolute; top:16px; right:16px; background:none; border:1px solid {{ theme.rule }}; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ theme.seal }}; font-size:15px;">♪</button>
+              <div style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:46px; color:{{ theme.ink }}; margin-bottom:14px;">{{ learnCard.hanzi }}</div>
+              <div style="font-size:24px; color:{{ theme.seal }}; font-style:italic; margin-bottom:8px;">{{ learnCard.pinyin }}</div>
+              <div style="font-size:19px; color:{{ theme.ink }}; max-width:300px;">{{ learnCard.meaning }}</div>
+              <sc-if value="{{ learnCard.hasLiteral }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:{{ theme.inkFaint }}; margin-top:10px; max-width:300px; font-style:italic;">{{ learnCard.literal }}</div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:24px; width:100%; margin-top:28px;">
+          <button onClick="{{ onLearnPrev }}" disabled="{{ learnPrevDisabled }}" style="background:{{ theme.card }}; border:1px solid {{ theme.rule }}; border-radius:50%; width:46px; height:46px; cursor:pointer; color:{{ theme.inkSoft }}; font-size:18px;">←</button>
+          <button onClick="{{ onToggleLearnMark }}" title="{{ learnMarkTitle }}" style="background:{{ learnMarkBg }}; border:2px solid {{ learnMarkBorder }}; border-radius:50%; width:58px; height:58px; cursor:pointer; color:{{ learnMarkColor }}; font-size:22px;">✓</button>
+          <button onClick="{{ onLearnNext }}" disabled="{{ learnNextDisabled }}" style="background:{{ theme.card }}; border:1px solid {{ theme.rule }}; border-radius:50%; width:46px; height:46px; cursor:pointer; color:{{ theme.inkSoft }}; font-size:18px;">→</button>
+        </div>
+        <div style="margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:11px; color:{{ theme.inkFaint }}; letter-spacing:0.06em; text-align:center;">{{ learnPositionText }}</div>
+        <div style="margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:{{ theme.inkFaint }}; letter-spacing:0.06em; text-align:center;">space to flip · ← → to move · ♪ to hear it</div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ noLearnCard }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center; color:{{ theme.inkSoft }}; max-width:340px;">
+          <span style="font-family:'Noto Serif SC',serif; font-size:56px; color:{{ theme.jade }}; display:block; margin-bottom:14px;">{{ learnEmptyGlyph }}</span>
+          <h2 style="font-family:'Source Serif 4',serif; font-weight:600; margin:0 0 8px; color:{{ theme.ink }};">{{ learnEmptyTitle }}</h2>
+          <p style="font-size:14.5px; line-height:1.6; margin:0;">{{ learnEmptyText }}</p>
+        </div>
+      </sc-if>
+    </div>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isBrowse }}" hint-placeholder-val="{{ false }}">
+  <section>
+    <div style="display:flex; gap:10px; margin-bottom:18px;">
+      <input type="text" value="{{ searchTerm }}" onChange="{{ onSearchChange }}" placeholder="Search hanzi, pinyin, or meaning…" style="flex:1; padding:11px 16px; border:1px solid {{ theme.rule }}; border-radius:10px; background:{{ theme.card }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14.5px;">
+      <select value="{{ includeFilter }}" onChange="{{ onIncludeFilterChange }}" style="padding:11px 14px; border:1px solid {{ theme.rule }}; border-radius:10px; background:{{ theme.card }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14px; cursor:pointer; flex-shrink:0;">
+        <option value="all">All cards</option>
+        <option value="included">In review</option>
+        <option value="excluded">Excluded</option>
+      </select>
+    </div>
+    <sc-if value="{{ browseEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center; margin:40px auto; color:{{ theme.inkSoft }};">
+        <span style="font-family:'Noto Serif SC',serif; font-size:56px; color:{{ theme.jade }}; display:block; margin-bottom:14px;">空</span>
+        <h2 style="font-family:'Source Serif 4',serif; font-weight:600; margin:0 0 8px; color:{{ theme.ink }};">No cards found</h2>
+        <p style="font-size:14.5px; margin:0;">Try a different search, or add a new card.</p>
+      </div>
+    </sc-if>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <sc-for list="{{ browseItems }}" as="c" hint-placeholder-count="6">
+        <sc-if value="{{ c.editing }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative; display:flex; flex-direction:column; gap:10px; background:{{ theme.card }}; border:1px solid {{ theme.seal }}; border-radius:12px; padding:16px;">
+            <div style="display:flex; gap:10px;">
+              <input type="text" value="{{ c.draft.hanzi }}" onChange="{{ c.onHanziChange }}" maxlength="12" style="width:78px; flex-shrink:0; font-family:'Noto Serif SC',serif; font-size:20px; text-align:center; padding:8px 10px; border:1px solid {{ theme.rule }}; border-radius:8px; background:{{ theme.bg }}; color:{{ theme.ink }};">
+              <input type="text" value="{{ c.draft.pinyin }}" onChange="{{ c.onPinyinChange }}" placeholder="pinyin" style="flex:1; min-width:0; padding:8px 10px; border:1px solid {{ theme.rule }}; border-radius:8px; background:{{ theme.bg }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14.5px;">
+              <input type="text" value="{{ c.draft.meaning }}" onChange="{{ c.onMeaningChange }}" placeholder="meaning" style="flex:1; min-width:0; padding:8px 10px; border:1px solid {{ theme.rule }}; border-radius:8px; background:{{ theme.bg }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14.5px;">
+            </div>
+            <input type="text" value="{{ c.draft.literal }}" onChange="{{ c.onLiteralChange }}" placeholder="literal meaning (optional)" style="padding:8px 10px; border:1px solid {{ theme.rule }}; border-radius:8px; background:{{ theme.bg }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14.5px;">
+            <input type="text" value="{{ c.draft.deck }}" onChange="{{ c.onDeckChange }}" list="deckListOptions" placeholder="deck" style="padding:8px 10px; border:1px solid {{ theme.rule }}; border-radius:8px; background:{{ theme.bg }}; color:{{ theme.ink }}; font-family:'Source Serif 4',serif; font-size:14.5px;">
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+              <button onClick="{{ c.onCancel }}" style="font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; padding:8px 16px; border-radius:8px; cursor:pointer; border:1px solid {{ theme.rule }}; background:{{ theme.card }}; color:{{ theme.inkSoft }};">Cancel</button>
+              <button onClick="{{ c.onSave }}" style="font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; padding:8px 16px; border-radius:8px; cursor:pointer; border:1px solid {{ theme.seal }}; background:{{ theme.seal }}; color:{{ theme.card }};">Save</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ c.notEditing }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative; display:flex; align-items:center; gap:16px; background:{{ c.rowBg }}; border:1px solid {{ theme.ruleLight }}; border-radius:12px; padding:14px 18px; opacity:{{ c.rowOpacity }};">
+            <button onClick="{{ c.onSpeak }}" title="{{ c.speakTitle }}" style="background:none; border:1px solid {{ theme.rule }}; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ theme.seal }}; font-size:12px; flex-shrink:0;">♪</button>
+            <div style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:30px; width:56px; text-align:center; flex-shrink:0; color:{{ theme.ink }};">{{ c.hanzi }}</div>
+            <div style="flex:1; min-width:0;">
+              <div style="color:{{ theme.seal }}; font-style:italic; font-size:14px;">{{ c.pinyin }}</div>
+              <div style="font-size:14px; color:{{ theme.inkSoft }};">{{ c.meaning }}</div>
+              <sc-if value="{{ c.hasLiteral }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10.5px; color:{{ theme.inkFaint }}; margin-top:2px;">{{ c.literal }}</div>
+              </sc-if>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase; color:{{ theme.jade }}; background:{{ theme.jadeLight }}; border:1px solid {{ theme.jade }}; border-radius:6px; padding:3px 8px; white-space:nowrap;">{{ c.deck }}</span>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:{{ theme.inkFaint }}; text-transform:uppercase; letter-spacing:0.06em; white-space:nowrap;">{{ c.dueLabel }}</div>
+            <label style="display:flex; align-items:center; cursor:pointer; flex-shrink:0;" title="Include in review queue">
+              <input type="checkbox" checked="{{ c.included }}" onChange="{{ c.onToggleInclude }}" style="position:absolute; opacity:0; width:1px; height:1px;">
+              <span style="display:block; width:34px; height:19px; border-radius:10px; background:{{ c.toggleBg }}; border:1px solid {{ c.toggleBorder }}; position:relative;">
+                <span style="position:absolute; top:1px; left:{{ c.toggleThumbLeft }}px; width:15px; height:15px; border-radius:50%; background:{{ theme.card }}; box-shadow:0 1px 3px {{ theme.shadow }};"></span>
+              </span>
+            </label>
+            <button onClick="{{ c.onToggleLearned }}" title="{{ c.learnedTitle }}" style="position:relative; background:{{ c.learnedBg }}; border:1px solid {{ c.learnedBorder }}; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ c.learnedColor }}; font-size:14px; flex-shrink:0;">✓</button>
+            <div style="display:flex; gap:2px; flex-shrink:0;">
+              <button onClick="{{ c.onEdit }}" title="Edit card" style="background:none; border:none; color:{{ theme.inkFaint }}; cursor:pointer; font-size:16px; padding:4px;">✎</button>
+              <button onClick="{{ c.onDelete }}" title="Delete card" style="background:none; border:none; color:{{ theme.inkFaint }}; cursor:pointer; font-size:18px; padding:4px;">✕</button>
+            </div>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+    <datalist id="deckListOptions">
+      <sc-for list="{{ deckOptions }}" as="d" hint-placeholder-count="2">
+        <option value="{{ d.value }}"></option>
+      </sc-for>
+    </datalist>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isAdd }}" hint-placeholder-val="{{ false }}">
+  <section>
+    <div style="background:{{ theme.card }}; border:1px solid {{ theme.ruleLight }}; border-radius:16px; padding:28px; max-width:440px; margin:0 auto;">
+      <h2 style="margin:0 0 4px; font-weight:600;">New card</h2>
+      <p style="color:{{ theme.inkSoft }}; font-size:13.5px; margin:0 0 24px;">Type pinyin without accents (e.g. "hao") to see matching words — pick one to autofill, or write your own.</p>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ theme.inkSoft }}; margin-bottom:6px;">Hanzi</label>
+        <input type="text" value="{{ addForm.hanzi }}" onChange="{{ onHanziInput }}" maxlength="12" placeholder="你好" style="width:100%; padding:12px 14px; border:1px solid {{ theme.rule }}; border-radius:10px; font-family:'Noto Serif SC',serif; font-size:22px; background:{{ theme.bg }}; color:{{ theme.ink }};">
+      </div>
+      <div style="margin-bottom:16px; position:relative;">
+        <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ theme.inkSoft }}; margin-bottom:6px;">Pinyin</label>
+        <input type="text" value="{{ addForm.pinyin }}" onChange="{{ onPinyinInput }}" placeholder="hao (no accents needed)" autocomplete="off" style="width:100%; padding:12px 14px; border:1px solid {{ theme.rule }}; border-radius:10px; font-family:'Source Serif 4',serif; font-size:16px; background:{{ theme.bg }}; color:{{ theme.ink }};">
+        <sc-if value="{{ suggestVisible }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; top:100%; left:0; right:0; margin-top:4px; background:{{ theme.card }}; border:1px solid {{ theme.rule }}; border-radius:10px; box-shadow:0 12px 28px -8px {{ theme.shadow }}; max-height:240px; overflow-y:auto; z-index:20;">
+            <sc-if value="{{ suggestEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:10px 14px; font-size:12.5px; color:{{ theme.inkFaint }}; font-family:'JetBrains Mono',monospace;">No matches — you can still add this as a new word.</div>
+            </sc-if>
+            <sc-for list="{{ suggestItems }}" as="sug" hint-placeholder-count="0">
+              <div onClick="{{ sug.onClick }}" style="display:flex; align-items:center; gap:12px; padding:10px 14px; cursor:pointer; border-bottom:1px solid {{ theme.ruleLight }};">
+                <div style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:20px; width:36px; text-align:center; flex-shrink:0; color:{{ theme.ink }};">{{ sug.hanzi }}</div>
+                <div style="flex:1; min-width:0;">
+                  <div style="color:{{ theme.seal }}; font-style:italic; font-size:13px;">{{ sug.pinyin }}</div>
+                  <div style="font-size:12.5px; color:{{ theme.inkSoft }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ sug.meaning }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ theme.inkSoft }}; margin-bottom:6px;">Meaning</label>
+        <input type="text" value="{{ addForm.meaning }}" onChange="{{ onMeaningInput }}" placeholder="hello" style="width:100%; padding:12px 14px; border:1px solid {{ theme.rule }}; border-radius:10px; font-family:'Source Serif 4',serif; font-size:16px; background:{{ theme.bg }}; color:{{ theme.ink }};">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ theme.inkSoft }}; margin-bottom:6px;">Literal meaning <span style="text-transform:none; letter-spacing:normal; color:{{ theme.inkFaint }}; font-weight:normal;">(optional)</span></label>
+        <input type="text" value="{{ addForm.literal }}" onChange="{{ onLiteralInput }}" placeholder="e.g. fire + vehicle + station" style="width:100%; padding:12px 14px; border:1px solid {{ theme.rule }}; border-radius:10px; font-family:'Source Serif 4',serif; font-size:16px; background:{{ theme.bg }}; color:{{ theme.ink }};">
+        <sc-if value="{{ literalHintText }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ onLiteralHintClick }}" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:{{ theme.jade }}; margin-top:6px; cursor:pointer;">{{ literalHintText }}</div>
+        </sc-if>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ theme.inkSoft }}; margin-bottom:6px;">Deck</label>
+        <input type="text" value="{{ addForm.deck }}" onChange="{{ onDeckInput }}" list="deckListOptions" placeholder="General" style="width:100%; padding:12px 14px; border:1px solid {{ theme.rule }}; border-radius:10px; font-family:'Source Serif 4',serif; font-size:16px; background:{{ theme.bg }}; color:{{ theme.ink }};">
+      </div>
+      <button onClick="{{ onSubmitAdd }}" style="width:100%; padding:14px; background:{{ theme.seal }}; color:{{ theme.card }}; border:none; border-radius:10px; font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; margin-top:4px;">Add to deck</button>
+      <div style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:{{ formMsgColor }}; margin-top:14px; min-height:14px;">{{ formMsg }}</div>
+    </div>
+  </section>
+  </sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;easyMarksLearned&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review behavior&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      loaded:false, darkMode:false, view:'review', currentDeck:'All', cards:[],
+      queue:[], qIndex:0, isFlipped:false,
+      editingId:null, editDraft:null,
+      searchTerm:'', includeFilter:'all',
+      learnSearchTerm:'', learnBaseList:[], learnList:[], learnIndex:0, learnFlipped:false,
+      addForm:{hanzi:'',pinyin:'',meaning:'',literal:'',deck:''},
+      suggestItemsRaw:[], activeSuggestIndex:-1, suggestVisible:false,
+      formMsg:'', formMsgColor:'',
+      particles:[], sealShow:false, tick:0
+    };
+    this.speakSlowNext = new Map();
+    this.data = null;
+    this._pid = 0;
+  }
+
+  async componentDidMount(){
+    const mod = await import('./flashcards-data.js');
+    this.data = mod;
+    try{
+      const dm = await mod.Store.get('darkMode');
+      if(dm && dm.value === 'true') this.setState({darkMode:true});
+    }catch(e){}
+    await this.loadCards();
+    await this.runImports();
+    this.migrateDecks();
+    this.migrateLiterals();
+    try{
+      const dp = await mod.Store.get('currentDeck');
+      if(dp && dp.value) this.setState({currentDeck: dp.value});
+    }catch(e){}
+    this.buildQueue();
+    this.buildLearnList();
+    this.setState({loaded:true});
+    this._interval = setInterval(() => this.periodicTick(), 30000);
+    this._keyHandler = (e) => this.handleKeydown(e);
+    document.addEventListener('keydown', this._keyHandler);
+    this._clickHandler = (e) => {
+      const within = e.target.closest && (e.target.closest('[data-suggest-box]') || e.target.getAttribute && e.target.getAttribute('data-pinyin-input'));
+      if(!within) this.setState({suggestVisible:false});
+    };
+    document.addEventListener('click', this._clickHandler);
+  }
+
+  componentWillUnmount(){
+    clearInterval(this._interval);
+    document.removeEventListener('keydown', this._keyHandler);
+    document.removeEventListener('click', this._clickHandler);
+  }
+
+  now(){ return Date.now(); }
+
+  cardsInCurrentDeck(){
+    const { cards, currentDeck } = this.state;
+    if(currentDeck === 'All') return cards;
+    return cards.filter(c => (c.deck || 'General') === currentDeck);
+  }
+
+  getDeckNames(){
+    const names = new Set(this.state.cards.map(c => c.deck || 'General'));
+    return Array.from(names).sort((a,b) => {
+      if(a === 'General') return -1;
+      if(b === 'General') return 1;
+      return a.localeCompare(b);
+    });
+  }
+
+  async loadCards(){
+    const d = this.data;
+    try{
+      const res = await d.Store.get('cards');
+      let cards = res && res.value ? JSON.parse(res.value) : null;
+      if(!cards || cards.length === 0){
+        cards = d.SEED.map(s => d.newCard(s.hanzi, s.pinyin, s.meaning, 'General'));
+      }
+      this.setState({cards});
+      await this.saveCards(cards);
+    }catch(err){
+      const cards = d.SEED.map(s => d.newCard(s.hanzi, s.pinyin, s.meaning, 'General'));
+      this.setState({cards});
+    }
+  }
+
+  async saveCards(cardsArg){
+    const cards = cardsArg || this.state.cards;
+    await this.data.Store.set('cards', JSON.stringify(cards));
+  }
+
+  async runImports(){
+    const d = this.data;
+    let cards = this.state.cards.slice();
+    const a1 = await d.runImportBatch(cards, d.IMPORT_BATCH_1, 'importedBatch1', 'General');
+    const a2 = await d.runImportBatch(cards, d.IMPORT_BATCH_HSK1, 'importedHSK1', 'HSK 1');
+    const a3 = await d.runImportBatch(cards, d.IMPORT_BATCH_HSK2, 'importedHSK2', 'HSK 2');
+    if(a1 + a2 + a3 > 0){
+      this.setState({cards});
+      await this.saveCards(cards);
+    }
+  }
+
+  migrateDecks(){
+    const d = this.data;
+    const hsk1Hanzi = new Set(d.IMPORT_BATCH_HSK1.map(w => w.hanzi));
+    let changed = false;
+    const cards = this.state.cards;
+    cards.forEach(c => {
+      if(!c.deck){ c.deck = hsk1Hanzi.has(c.hanzi) ? 'HSK 1' : 'General'; changed = true; }
+    });
+    if(changed){ this.setState({cards: cards.slice()}); this.saveCards(cards); }
+  }
+
+  migrateLiterals(){
+    const d = this.data;
+    const litMap = new Map();
+    d.IMPORT_BATCH_HSK2.forEach(w => { if(w.literal) litMap.set(w.hanzi, w.literal); });
+    let changed = false;
+    this.state.cards.forEach(c => {
+      if(!c.literal && litMap.has(c.hanzi)){ c.literal = litMap.get(c.hanzi); changed = true; }
+    });
+    if(changed){ this.setState({cards: this.state.cards.slice()}); this.saveCards(); }
+  }
+
+  buildQueue(){
+    const t = this.now();
+    const pool = this.cardsInCurrentDeck().filter(c => !c.suspended);
+    const queue = pool.filter(c => c.due <= t).sort((a,b) => a.due - b.due).map(c => c.id);
+    this.setState({queue, qIndex:0});
+  }
+
+  syncQueueWithNewlyDue(){
+    const t = this.now();
+    const inQueue = new Set(this.state.queue);
+    const pool = this.cardsInCurrentDeck().filter(c => !c.suspended && c.due <= t);
+    let added = 0;
+    const queue = this.state.queue.slice();
+    pool.forEach(c => { if(!inQueue.has(c.id)){ queue.push(c.id); inQueue.add(c.id); added++; } });
+    if(added > 0) this.setState({queue});
+    return added;
+  }
+
+  currentCard(){
+    const { queue, qIndex, cards } = this.state;
+    if(qIndex >= queue.length) return null;
+    return cards.find(c => c.id === queue[qIndex]);
+  }
+
+  getLiteral(card){
+    if(card.literal) return card.literal;
+    return this.data.literalBreakdown(card.hanzi);
+  }
+
+  speak(text){
+    try{
+      if(!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const isSlow = !!this.speakSlowNext.get(text);
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'zh-CN';
+      utter.rate = isSlow ? 0.55 : 1.0;
+      const voices = window.speechSynthesis.getVoices();
+      const zhVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('zh'));
+      if(zhVoice) utter.voice = zhVoice;
+      window.speechSynthesis.speak(utter);
+      this.speakSlowNext.set(text, !isSlow);
+      this.forceUpdate();
+    }catch(err){}
+  }
+
+  speakTitle(text){ return this.speakSlowNext.get(text) ? 'Pronounce (slow)' : 'Pronounce'; }
+
+  flipCard = () => {
+    if(!this.currentCard()) return;
+    this.setState(s => ({isFlipped: !s.isFlipped}));
+  };
+
+  rate = (rating) => {
+    const card = this.currentCard();
+    if(!card || !this.state.isFlipped) return;
+    this.data.schedule(card, rating);
+    if(rating === 'easy' && (this.props.easyMarksLearned ?? true) && !card.learned){
+      card.learned = true;
+      card.learnedAt = this.now();
+    }
+    this.saveCards();
+    if(rating === 'good' || rating === 'easy') this.celebrate();
+    let queue = this.state.queue.slice();
+    let qIndex = this.state.qIndex;
+    queue.splice(qIndex, 1);
+    if(rating === 'again'){
+      const insertAt = Math.min(queue.length, qIndex + 3);
+      queue.splice(insertAt, 0, card.id);
+    }
+    this.setState({suppressFlipAnim:true, queue, isFlipped:false, cards: this.state.cards.slice()}, () => {
+      this.syncQueueWithNewlyDue();
+      if(this.state.qIndex >= this.state.queue.length) this.setState({qIndex: Math.max(0, this.state.queue.length - 1)});
+      requestAnimationFrame(() => requestAnimationFrame(() => this.setState({suppressFlipAnim:false})));
+    });
+  };
+
+  celebrate(){
+    const colors = [this.data ? null : null];
+    const theme = this.getTheme();
+    const palette = [theme.seal, theme.jade, theme.gold];
+    const particles = [];
+    for(let i=0;i<16;i++){
+      const angle = (Math.PI * 2 * i) / 16 + Math.random()*0.3;
+      const dist = 70 + Math.random()*50;
+      particles.push({
+        id: this._pid++,
+        tx: Math.round(Math.cos(angle)*dist),
+        ty: Math.round(Math.sin(angle)*dist),
+        color: palette[i % palette.length],
+        delay: Math.round(Math.random()*80)
+      });
+    }
+    this.setState({particles, sealShow:true});
+    setTimeout(() => this.setState({particles:[], sealShow:false}), 900);
+  }
+
+  setView = (view) => {
+    this.setState({view, editingId:null, editDraft:null});
+    if(view === 'review'){ this.buildQueue(); }
+    if(view === 'learn'){ this.buildLearnList(); }
+    if(view === 'add' && !this.state.addForm.deck){
+      const deck = this.state.currentDeck === 'All' ? 'General' : this.state.currentDeck;
+      this.setState(s => ({addForm:{...s.addForm, deck}}));
+    }
+  };
+
+  onDeckChange = (e) => {
+    const currentDeck = e.target.value;
+    this.setState({currentDeck});
+    this.data.Store.set('currentDeck', currentDeck);
+    if(this.state.view === 'review') this.buildQueue();
+    if(this.state.view === 'learn') this.buildLearnList();
+    if(currentDeck !== 'All') this.setState(s => ({addForm:{...s.addForm, deck: currentDeck}}));
+    setTimeout(() => { if(this.state.view === 'review') this.buildQueue(); if(this.state.view==='learn') this.buildLearnList(); }, 0);
+  };
+
+  onToggleDarkMode = () => {
+    const darkMode = !this.state.darkMode;
+    this.setState({darkMode});
+    this.data.Store.set('darkMode', String(darkMode));
+  };
+
+  // ---- Learn mode ----
+  buildLearnList(){
+    const learnBaseList = this.cardsInCurrentDeck().filter(c => c.learned).sort((a,b) => (b.learnedAt||0) - (a.learnedAt||0));
+    this.setState({learnBaseList}, () => this.applyLearnSearch());
+  }
+
+  applyLearnSearch(){
+    const d = this.data;
+    const f = this.state.learnSearchTerm.trim().toLowerCase();
+    const fCompact = d.tonelessCompact(this.state.learnSearchTerm);
+    const learnList = !f ? this.state.learnBaseList.slice() : this.state.learnBaseList.filter(c =>
+      c.hanzi.includes(f) || c.meaning.toLowerCase().includes(f) || d.tonelessCompact(c.pinyin).includes(fCompact));
+    this.setState({learnList, learnIndex:0, learnFlipped:false});
+  }
+
+  onLearnSearchChange = (e) => {
+    this.setState({learnSearchTerm: e.target.value}, () => this.applyLearnSearch());
+  };
+
+  currentLearnCard(){
+    const { learnList, learnIndex } = this.state;
+    if(learnList.length === 0) return null;
+    return learnList[learnIndex];
+  }
+
+  flipLearnCard = () => { if(this.currentLearnCard()) this.setState(s => ({learnFlipped: !s.learnFlipped})); };
+
+  moveLearn = (delta) => {
+    const ni = this.state.learnIndex + delta;
+    if(ni < 0 || ni >= this.state.learnList.length) return;
+    this.setState({learnIndex: ni, learnFlipped:false});
+  };
+
+  toggleLearnMark = () => {
+    const card = this.currentLearnCard();
+    if(!card) return;
+    card.learned = !card.learned;
+    if(card.learned) card.learnedAt = this.now();
+    this.saveCards();
+    let { learnList, learnBaseList, learnIndex } = this.state;
+    if(!card.learned){
+      learnList = learnList.filter(c => c.id !== card.id);
+      learnBaseList = learnBaseList.filter(c => c.id !== card.id);
+      if(learnIndex >= learnList.length) learnIndex = Math.max(0, learnList.length - 1);
+    }
+    this.setState({learnList, learnBaseList, learnIndex, cards: this.state.cards.slice()});
+  };
+
+  // ---- Browse ----
+  onSearchChange = (e) => this.setState({searchTerm: e.target.value});
+  onIncludeFilterChange = (e) => this.setState({includeFilter: e.target.value});
+
+  editStart(card){
+    this.setState({editingId: card.id, editDraft: {hanzi:card.hanzi, pinyin:card.pinyin, meaning:card.meaning, literal:card.literal||'', deck:card.deck||'General'}});
+  }
+  editCancel = () => this.setState({editingId:null, editDraft:null});
+  editFieldChange(field, e){
+    this.setState(s => ({editDraft: {...s.editDraft, [field]: e.target.value}}));
+  }
+  editSave(id){
+    const { editDraft, cards } = this.state;
+    if(!editDraft || !editDraft.hanzi.trim() || !editDraft.pinyin.trim() || !editDraft.meaning.trim()) return;
+    const card = cards.find(c => c.id === id);
+    if(card){
+      card.hanzi = editDraft.hanzi.trim();
+      card.pinyin = editDraft.pinyin.trim();
+      card.meaning = editDraft.meaning.trim();
+      card.literal = editDraft.literal.trim();
+      card.deck = editDraft.deck.trim() || 'General';
+      this.saveCards();
+    }
+    this.setState({editingId:null, editDraft:null, cards: cards.slice()});
+    this.buildQueue();
+  }
+  toggleLearned(card){
+    card.learned = !card.learned;
+    if(card.learned) card.learnedAt = this.now();
+    this.saveCards();
+    this.setState({cards: this.state.cards.slice()});
+  }
+  toggleInclude(card, e){
+    card.suspended = !e.target.checked;
+    this.saveCards();
+    this.setState({cards: this.state.cards.slice()});
+    this.buildQueue();
+  }
+  deleteCard(id){
+    const cards = this.state.cards.filter(c => c.id !== id);
+    this.setState({cards, editingId: this.state.editingId === id ? null : this.state.editingId});
+    this.saveCards(cards);
+    this.buildQueue();
+  }
+
+  // ---- Add form ----
+  onHanziInput = (e) => this.setState(s => ({addForm:{...s.addForm, hanzi: e.target.value}}));
+  onMeaningInput = (e) => this.setState(s => ({addForm:{...s.addForm, meaning: e.target.value}}));
+  onLiteralInput = (e) => this.setState(s => ({addForm:{...s.addForm, literal: e.target.value}}));
+  onDeckInput = (e) => this.setState(s => ({addForm:{...s.addForm, deck: e.target.value}}));
+  onPinyinInput = (e) => {
+    const val = e.target.value;
+    this.setState(s => ({addForm:{...s.addForm, pinyin: val}}), () => this.updateSuggestions());
+  };
+
+  updateSuggestions(){
+    const d = this.data;
+    const query = this.state.addForm.pinyin.trim();
+    if(!query){ this.setState({suggestVisible:false, suggestItemsRaw:[]}); return; }
+    const q = d.tonelessCompact(query);
+    const matches = d.DICTIONARY.filter(x => d.tonelessCompact(x.pinyin).includes(q))
+      .sort((a,b) => {
+        const aS = d.tonelessCompact(a.pinyin).startsWith(q) ? 0 : 1;
+        const bS = d.tonelessCompact(b.pinyin).startsWith(q) ? 0 : 1;
+        return aS - bS;
+      }).slice(0,8);
+    this.setState({suggestItemsRaw: matches, suggestVisible:true});
+  }
+
+  applySuggestion(d){
+    this.setState({addForm:{hanzi:d.hanzi, pinyin:d.pinyin, meaning:d.meaning, literal: this.state.addForm.literal, deck: this.state.addForm.deck}, suggestVisible:false, suggestItemsRaw:[]});
+  }
+
+  onLiteralHintClick = () => {
+    const computed = this.data.literalBreakdown(this.state.addForm.hanzi.trim());
+    if(computed) this.setState(s => ({addForm:{...s.addForm, literal: computed}}));
+  };
+
+  onSubmitAdd = async () => {
+    const { hanzi, pinyin, meaning, literal, deck } = this.state.addForm;
+    if(!hanzi.trim() || !pinyin.trim() || !meaning.trim()){
+      this.setState({formMsgColor:'#B8402A', formMsg:'Please fill in all three fields.'});
+      return;
+    }
+    const finalDeck = deck.trim() || 'General';
+    const card = this.data.newCard(hanzi.trim(), pinyin.trim(), meaning.trim(), finalDeck, literal.trim());
+    const cards = this.state.cards.concat([card]);
+    this.setState({
+      cards,
+      addForm:{hanzi:'', pinyin:'', meaning:'', literal:'', deck: finalDeck},
+      formMsgColor:'#3F6E5C',
+      formMsg: `Added ${hanzi.trim()} to "${finalDeck}" — it's in today's queue.`
+    });
+    await this.saveCards(cards);
+    this.buildQueue();
+  };
+
+  handleKeydown(e){
+    const typing = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+    if(this.state.view === 'review'){
+      if(e.code === 'Space' && !typing){ e.preventDefault(); this.flipCard(); }
+      if(this.state.isFlipped && ['1','2','3','4'].includes(e.key) && !typing){
+        const map = {'1':'again','2':'hard','3':'good','4':'easy'};
+        this.rate(map[e.key]);
+      }
+    }else if(this.state.view === 'learn' && !typing){
+      if(e.code === 'Space'){ e.preventDefault(); this.flipLearnCard(); }
+      if(e.key === 'ArrowLeft'){ e.preventDefault(); this.moveLearn(-1); }
+      if(e.key === 'ArrowRight'){ e.preventDefault(); this.moveLearn(1); }
+    }
+  }
+
+  periodicTick(){
+    this.setState(s => ({tick: s.tick + 1}));
+    if(this.state.view === 'review'){
+      const wasEmpty = !this.currentCard();
+      const added = this.syncQueueWithNewlyDue();
+      if(added > 0 && wasEmpty){}
+    }
+  }
+
+  getTheme(){
+    const dark = this.state.darkMode;
+    return dark ? {
+      bg:'#15120D', bgAlt:'#1C1811', card:'#221D15', ink:'#F1E9D8', inkSoft:'#B8AC96', inkFaint:'#7C7263',
+      seal:'#E2593C', sealDark:'#C4462C', jade:'#6FAE93', jadeLight:'rgba(111,174,147,0.16)',
+      gold:'#D4A85C', rule:'#3A3226', ruleLight:'#2A241B', shadow:'rgba(0,0,0,0.5)'
+    } : {
+      bg:'#F3ECDC', bgAlt:'#E9DFC7', card:'#FFFCF5', ink:'#1C1712', inkSoft:'#5C5346', inkFaint:'#948A79',
+      seal:'#A8341F', sealDark:'#7E2617', jade:'#3F6E5C', jadeLight:'rgba(63,110,92,0.12)',
+      gold:'#A67C3D', rule:'#D8C4A0', ruleLight:'#E6D8B9', shadow:'rgba(28,20,12,0.18)'
+    };
+  }
+
+  renderVals(){
+    const d = this.data;
+    const theme = this.getTheme();
+    if(!d || !this.state.loaded){
+      return { loaded:false, theme, isReview:true, isLearn:false, isBrowse:false, isAdd:false, hasReviewCard:false, noReviewCard:true, noLearnCard:true,
+        navItems:[], statsItems:[], ringPercent:0, ringOffset:132, ringCircumference:132, deckOptions:[], currentDeck:'All',
+        particles:[], sealShow:false, darkMode:false, toggleTrackBg: theme.ruleLight, toggleThumbLeft:1, toggleThumbGlyph:'',
+        rateOptions:[], reviewCard:null, isFlipped:false, queueLeftText:'', onFlipCard:()=>{}, onSpeakReview:()=>{}, onToggleDarkMode:()=>{},
+        onDeckChange:()=>{}, hasLearnCard:false, learnSearchTerm:'', onLearnSearchChange:()=>{}, learnCard:null, learnFlipped:false,
+        onFlipLearnCard:()=>{}, onSpeakLearn:()=>{}, learnPrevDisabled:true, learnNextDisabled:true, onLearnPrev:()=>{}, onLearnNext:()=>{},
+        learnMarkBg:theme.card, learnMarkBorder:theme.rule, learnMarkColor:theme.inkFaint, learnMarkTitle:'', onToggleLearnMark:()=>{},
+        learnPositionText:'', learnEmptyGlyph:'卡', learnEmptyTitle:'', learnEmptyText:'', searchTerm:'', onSearchChange:()=>{},
+        includeFilter:'all', onIncludeFilterChange:()=>{}, browseItems:[], browseEmpty:false, addForm:{hanzi:'',pinyin:'',meaning:'',literal:'',deck:''},
+        onHanziInput:()=>{}, onMeaningInput:()=>{}, onLiteralInput:()=>{}, onDeckInput:()=>{}, onPinyinInput:()=>{}, suggestVisible:false,
+        suggestEmpty:false, suggestItems:[], literalHintText:'', onLiteralHintClick:()=>{}, formMsg:'', formMsgColor:'', onSubmitAdd:()=>{},
+        reviewFlipTransform:'none', learnFlipTransform:'none', reviewFlipTransition:'none',
+        reviewFrontVisibility:'visible', reviewBackVisibility:'hidden', learnFrontVisibility:'visible', learnBackVisibility:'hidden'
+      };
+    }
+
+    const t = this.now();
+    const pool = this.cardsInCurrentDeck();
+    const active = pool.filter(c => !c.suspended);
+    const due = active.filter(c => c.due <= t).length;
+    const total = pool.length;
+    const excluded = pool.length - active.length;
+    const learnedCount = pool.filter(c => c.learned).length;
+    const statsItems = [
+      {label:'due', value: due}, {label:'total', value: total}, {label:'learned', value: learnedCount}
+    ];
+    if(excluded > 0) statsItems.push({label:'excluded', value: excluded});
+
+    const ringR = 21, ringCircumference = 2*Math.PI*ringR;
+    const ringPercent = total ? Math.round(learnedCount/total*100) : 0;
+    const ringOffset = ringCircumference * (1 - ringPercent/100);
+
+    const deckNames = this.getDeckNames();
+    const dueCountFor = (n) => this.state.cards.filter(c => (c.deck||'General')===n && !c.suspended && c.due<=t).length;
+    const allDue = this.state.cards.filter(c => !c.suspended && c.due<=t).length;
+    const deckOptions = [{value:'All', label:`All Decks (${allDue} due)`}].concat(
+      deckNames.map(n => ({value:n, label:`${n} (${dueCountFor(n)} due / ${this.state.cards.filter(c=>(c.deck||'General')===n).length} total)`}))
+    );
+
+    const navDefs = [['review','Review'],['learn','Learn'],['browse','Browse'],['add','Add']];
+    const navItems = navDefs.map(([key,label]) => ({
+      key, label,
+      isActive: this.state.view === key,
+      bg: this.state.view === key ? theme.ink : 'transparent',
+      color: this.state.view === key ? theme.bg : theme.inkSoft,
+      border: this.state.view === key ? theme.ink : theme.rule,
+      onClick: () => this.setView(key)
+    }));
+
+    // Review
+    const card = this.currentCard();
+    let reviewCard = null;
+    if(card){
+      reviewCard = {
+        hanzi: card.hanzi, pinyin: card.pinyin, meaning: card.meaning,
+        literal: this.getLiteral(card), hasLiteral: !!this.getLiteral(card),
+        speakTitle: this.speakTitle(card.hanzi)
+      };
+    }
+    const rateDefs = card ? [
+      ['again','Again', d.previewInterval(card,'again'), theme.seal, `${theme.sealDark}22`],
+      ['hard','Hard', d.previewInterval(card,'hard'), theme.gold, `${theme.gold}22`],
+      ['good','Good', d.previewInterval(card,'good'), theme.jade, `${theme.jade}22`],
+      ['easy','Easy', d.previewInterval(card,'easy'), theme.jade, `${theme.jade}22`],
+    ] : [];
+    const rateOptions = rateDefs.map(([key,label,interval,color,bg]) => ({
+      key, label, interval, color, bg, border: color+'55', onClick: () => this.rate(key)
+    }));
+
+    // Learn
+    const learnCard = this.currentLearnCard();
+    const learnCardVal = learnCard ? {
+      hanzi: learnCard.hanzi, pinyin: learnCard.pinyin, meaning: learnCard.meaning,
+      literal: this.getLiteral(learnCard), hasLiteral: !!this.getLiteral(learnCard),
+      speakTitle: this.speakTitle(learnCard.hanzi)
+    } : null;
+
+    // Browse
+    const f = this.state.searchTerm.trim().toLowerCase();
+    const fCompact = d.tonelessCompact(this.state.searchTerm);
+    const incFilter = this.state.includeFilter;
+    const items = this.cardsInCurrentDeck()
+      .filter(c => !f || c.hanzi.includes(f) || c.meaning.toLowerCase().includes(f) || d.tonelessCompact(c.pinyin).includes(fCompact))
+      .filter(c => incFilter === 'included' ? !c.suspended : incFilter === 'excluded' ? !!c.suspended : true)
+      .sort((a,b) => a.due - b.due);
+
+    const browseItems = items.map(c => {
+      const editing = this.state.editingId === c.id;
+      const literal = this.getLiteral(c);
+      const dueLabel = c.suspended ? 'excluded' : (c.due <= t ? 'due now' : d.dueIn(c.due - t));
+      return {
+        id: c.id, editing, notEditing: !editing,
+        draft: editing ? this.state.editDraft : null,
+        onHanziChange: (e) => this.editFieldChange('hanzi', e),
+        onPinyinChange: (e) => this.editFieldChange('pinyin', e),
+        onMeaningChange: (e) => this.editFieldChange('meaning', e),
+        onLiteralChange: (e) => this.editFieldChange('literal', e),
+        onDeckChange: (e) => this.editFieldChange('deck', e),
+        onCancel: this.editCancel,
+        onSave: () => this.editSave(c.id),
+        hanzi: c.hanzi, pinyin: c.pinyin, meaning: c.meaning, literal, hasLiteral: !!literal,
+        deck: c.deck || 'General', dueLabel,
+        rowBg: c.learned ? theme.jadeLight : theme.card,
+        rowOpacity: c.suspended ? 0.55 : 1,
+        included: !c.suspended,
+        onToggleInclude: (e) => this.toggleInclude(c, e),
+        toggleBg: !c.suspended ? theme.jade : theme.ruleLight,
+        toggleBorder: !c.suspended ? theme.jade : theme.rule,
+        toggleThumbLeft: !c.suspended ? 16 : 1,
+        learned: c.learned, learnedTitle: c.learned ? 'Marked as learned' : 'Mark as learned',
+        learnedBg: c.learned ? theme.jade : 'transparent', learnedBorder: c.learned ? theme.jade : theme.rule,
+        learnedColor: c.learned ? theme.card : theme.inkFaint,
+        onToggleLearned: () => this.toggleLearned(c),
+        onEdit: () => this.editStart(c),
+        onDelete: () => this.deleteCard(c.id),
+        onSpeak: () => this.speak(c.hanzi),
+        speakTitle: this.speakTitle(c.hanzi)
+      };
+    });
+
+    // Add form suggestions
+    const suggestItems = this.state.suggestItemsRaw.map((sug,i) => ({
+      hanzi: sug.hanzi, pinyin: sug.pinyin, meaning: sug.meaning,
+      onClick: () => this.applySuggestion(sug)
+    }));
+    const literalComputed = d.literalBreakdown(this.state.addForm.hanzi.trim());
+    const literalHintText = (literalComputed && !this.state.addForm.literal.trim()) ? `Suggested: ${literalComputed} — click to use` : '';
+
+    const learnEmptyHasSearch = this.state.learnSearchTerm.trim() !== '';
+
+    return {
+      loaded:true, theme,
+      darkMode: this.state.darkMode, onToggleDarkMode: this.onToggleDarkMode,
+      toggleTrackBg: this.state.darkMode ? theme.jade : theme.ruleLight,
+      toggleThumbLeft: this.state.darkMode ? 18 : 1,
+      toggleThumbGlyph: this.state.darkMode ? '☾' : '☀',
+      isReview: this.state.view === 'review', isLearn: this.state.view === 'learn',
+      isBrowse: this.state.view === 'browse', isAdd: this.state.view === 'add',
+      navItems, statsItems, ringPercent, ringOffset, ringCircumference,
+      deckOptions, currentDeck: this.state.currentDeck, onDeckChange: this.onDeckChange,
+
+      hasReviewCard: !!card, noReviewCard: !card, reviewCard, isFlipped: this.state.isFlipped,
+      reviewFlipTransform: this.state.isFlipped ? 'rotateY(180deg)' : 'none',
+      reviewFlipTransition: this.state.suppressFlipAnim ? 'none' : 'transform 0.5s cubic-bezier(.4,.2,.2,1)',
+      reviewFrontVisibility: this.state.isFlipped ? 'hidden' : 'visible',
+      reviewBackVisibility: this.state.isFlipped ? 'visible' : 'hidden',
+      onFlipCard: this.flipCard, onSpeakReview: () => reviewCard && this.speak(card.hanzi),
+      rateOptions, queueLeftText: `${this.state.queue.length} left in queue`,
+      particles: this.state.particles, sealShow: this.state.sealShow,
+
+      learnSearchTerm: this.state.learnSearchTerm, onLearnSearchChange: this.onLearnSearchChange,
+      hasLearnCard: !!learnCard, noLearnCard: !learnCard, learnCard: learnCardVal, learnFlipped: this.state.learnFlipped,
+      learnFlipTransform: this.state.learnFlipped ? 'rotateY(180deg)' : 'none',
+      learnFrontVisibility: this.state.learnFlipped ? 'hidden' : 'visible',
+      learnBackVisibility: this.state.learnFlipped ? 'visible' : 'hidden',
+      onFlipLearnCard: this.flipLearnCard, onSpeakLearn: () => learnCard && this.speak(learnCard.hanzi),
+      learnPrevDisabled: this.state.learnIndex === 0, learnNextDisabled: this.state.learnIndex >= this.state.learnList.length - 1,
+      onLearnPrev: () => this.moveLearn(-1), onLearnNext: () => this.moveLearn(1),
+      learnMarkBg: learnCard && learnCard.learned ? theme.jade : theme.card,
+      learnMarkBorder: learnCard && learnCard.learned ? theme.jade : theme.rule,
+      learnMarkColor: learnCard && learnCard.learned ? theme.card : theme.inkFaint,
+      learnMarkTitle: learnCard && learnCard.learned ? 'Marked as learned' : 'Mark as learned',
+      onToggleLearnMark: this.toggleLearnMark,
+      learnPositionText: this.state.learnList.length ? `✓ learned card ${this.state.learnIndex+1} / ${this.state.learnList.length}` : '',
+      learnEmptyGlyph: learnEmptyHasSearch ? '空' : '卡',
+      learnEmptyTitle: learnEmptyHasSearch ? 'No matches' : 'No learned cards yet',
+      learnEmptyText: learnEmptyHasSearch ? `No learned cards match "${this.state.learnSearchTerm}". Try a different search.` : "Mark cards with the ✓ checkmark in Review, Learn, or Browse and they'll show up here for quick flip-through.",
+
+      searchTerm: this.state.searchTerm, onSearchChange: this.onSearchChange,
+      includeFilter: this.state.includeFilter, onIncludeFilterChange: this.onIncludeFilterChange,
+      browseItems, browseEmpty: browseItems.length === 0,
+
+      addForm: this.state.addForm, onHanziInput: this.onHanziInput, onMeaningInput: this.onMeaningInput,
+      onLiteralInput: this.onLiteralInput, onDeckInput: this.onDeckInput, onPinyinInput: this.onPinyinInput,
+      suggestVisible: this.state.suggestVisible, suggestEmpty: this.state.suggestVisible && suggestItems.length === 0,
+      suggestItems, literalHintText, onLiteralHintClick: this.onLiteralHintClick,
+      formMsg: this.state.formMsg, formMsgColor: this.state.formMsgColor, onSubmitAdd: this.onSubmitAdd
+    };
+  }
+}
+</script>
+</body>
+</html>
