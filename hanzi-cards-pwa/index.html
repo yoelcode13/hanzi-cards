@@ -219,7 +219,8 @@
           </div>
         </sc-if>
         <sc-if value="{{ c.notEditing }}" hint-placeholder-val="{{ true }}">
-          <div style="position:relative; display:flex; align-items:center; gap:16px; background:{{ c.rowBg }}; border:1px solid {{ theme.ruleLight }}; border-radius:12px; padding:14px 18px; opacity:{{ c.rowOpacity }};">
+          <div style="position:relative; background:{{ c.rowBg }}; border:1px solid {{ theme.ruleLight }}; border-radius:12px; opacity:{{ c.rowOpacity }}; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          <div style="display:flex; align-items:center; gap:16px; padding:14px 18px; min-width:max-content;">
             <button onClick="{{ c.onSpeak }}" title="{{ c.speakTitle }}" style="background:none; border:1px solid {{ theme.rule }}; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:{{ theme.seal }}; font-size:12px; flex-shrink:0;">♪</button>
             <div style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:30px; width:56px; text-align:center; flex-shrink:0; color:{{ theme.ink }};">{{ c.hanzi }}</div>
             <div style="flex:1; min-width:0;">
@@ -242,6 +243,7 @@
               <button onClick="{{ c.onEdit }}" title="Edit card" style="background:none; border:none; color:{{ theme.inkFaint }}; cursor:pointer; font-size:16px; padding:4px;">✎</button>
               <button onClick="{{ c.onDelete }}" title="Delete card" style="background:none; border:none; color:{{ theme.inkFaint }}; cursor:pointer; font-size:18px; padding:4px;">✕</button>
             </div>
+          </div>
           </div>
         </sc-if>
       </sc-for>
