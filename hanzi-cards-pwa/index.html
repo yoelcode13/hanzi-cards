@@ -875,7 +875,7 @@ class Component extends DCLogic {
       deckNames.map(n => ({value:n, label:`${n} (${dueCountFor(n)} due / ${this.state.cards.filter(c=>(c.deck||'General')===n).length} total)`}))
     );
 
-    const navDefs = [['review','Review'],['learn','Learn'],['browse','Browse'],['stats','Stats'],['add','Add']];
+    const navDefs = [['review','Learn'],['learn','Review'],['browse','Browse'],['stats','Stats'],['add','Add']];
     const navItems = navDefs.map(([key,label]) => ({
       key, label,
       isActive: this.state.view === key,
