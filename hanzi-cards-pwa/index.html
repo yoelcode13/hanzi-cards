@@ -1040,7 +1040,7 @@ class Component extends DCLogic {
       reviewFlipTransition: this.state.suppressFlipAnim ? 'none' : 'transform 0.5s cubic-bezier(.4,.2,.2,1)',
       reviewFrontVisibility: this.state.isFlipped ? 'hidden' : 'visible',
       reviewBackVisibility: this.state.isFlipped ? 'visible' : 'hidden',
-      onFlipCard: this.flipCard, onSpeakReview: () => reviewCard && this.speak(card.hanzi),
+      onFlipCard: this.flipCard, onSpeakReview: (e) => { e.stopPropagation(); reviewCard && this.speak(card.hanzi); },
       rateOptions, queueLeftText: `${this.state.queue.length} left in queue`,
       particles: this.state.particles, sealShow: this.state.sealShow,
 
@@ -1049,7 +1049,7 @@ class Component extends DCLogic {
       learnFlipTransform: this.state.learnFlipped ? 'rotateY(180deg)' : 'none',
       learnFrontVisibility: this.state.learnFlipped ? 'hidden' : 'visible',
       learnBackVisibility: this.state.learnFlipped ? 'visible' : 'hidden',
-      onFlipLearnCard: this.flipLearnCard, onSpeakLearn: () => learnCard && this.speak(learnCard.hanzi),
+      onFlipLearnCard: this.flipLearnCard, onSpeakLearn: (e) => { e.stopPropagation(); learnCard && this.speak(learnCard.hanzi); },
       learnPrevDisabled: this.state.learnIndex === 0, learnNextDisabled: this.state.learnIndex >= this.state.learnList.length - 1,
       onLearnPrev: () => this.moveLearn(-1), onLearnNext: () => this.moveLearn(1),
       learnMarkBg: learnCard && learnCard.learned ? theme.jade : theme.card,
