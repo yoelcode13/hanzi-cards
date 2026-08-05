@@ -15,6 +15,8 @@ self.addEventListener('activate', (e) => {
 
 // Network-first: always try to fetch fresh files when online; fall back to cache offline.
 self.addEventListener('fetch', (e) => {
+  // Only handle same-origin app files; let cross-origin requests (e.g. TTS audio) go straight to the network.
+  if(new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request).then(res => {
       const resClone = res.clone();
