@@ -558,10 +558,15 @@ class Component extends DCLogic {
         }
       };
       if(!this._audioEl){ this._audioEl = new Audio(); }
+      let started = false;
       this._audioEl.onerror = fallback;
+      this._audioEl.onplaying = () => { started = true; };
       const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-CN&client=tw-ob&ttsspeed=${isSlow?0.4:1}`;
       this._audioEl.src = url;
       this._audioEl.play().catch(fallback);
+      // Opaque cross-origin responses can report "loaded" even when blocked (e.g. 403) with no error event —
+      // if playback hasn't actually started shortly after, treat it as failed and use the built-in voice instead.
+      setTimeout(() => { if(!started) fallback(); }, 900);
       this.speakSlowNext.set(text, !isSlow);
       this.forceUpdate();
     }catch(err){}
