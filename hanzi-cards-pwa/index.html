@@ -420,6 +420,8 @@ class Component extends DCLogic {
     await this.loadCards();
     await this.runImports();
     this.migrateDecks();
+    this.migrateHsk21Deck();
+    this.backfillLiterals();
     this.migrateLiterals();
     try{
       const dp = await mod.Store.get('currentDeck');
@@ -488,7 +490,8 @@ class Component extends DCLogic {
     const a1 = await d.runImportBatch(cards, d.IMPORT_BATCH_1, 'importedBatch1', 'General');
     const a2 = await d.runImportBatch(cards, d.IMPORT_BATCH_HSK1, 'importedHSK1', 'HSK 1');
     const a3 = await d.runImportBatch(cards, d.IMPORT_BATCH_HSK2, 'importedHSK2', 'HSK 2');
-    if(a1 + a2 + a3 > 0){
+    const a4 = await d.runImportBatch(cards, d.IMPORT_BATCH_2, 'importedBatch2', 'HSK 2.1');
+    if(a1 + a2 + a3 + a4 > 0){
       this.setState({cards});
       await this.saveCards(cards);
     }
@@ -501,6 +504,28 @@ class Component extends DCLogic {
     const cards = this.state.cards;
     cards.forEach(c => {
       if(!c.deck){ c.deck = hsk1Hanzi.has(c.hanzi) ? 'HSK 1' : 'General'; changed = true; }
+    });
+    if(changed){ this.setState({cards: cards.slice()}); this.saveCards(cards); }
+  }
+
+  backfillLiterals(){
+    const d = this.data;
+    const litMap = new Map(d.IMPORT_BATCH_2.map(w => [w.hanzi, w.literal]));
+    let changed = false;
+    const cards = this.state.cards;
+    cards.forEach(c => {
+      if(!c.literal && litMap.has(c.hanzi)){ c.literal = litMap.get(c.hanzi); changed = true; }
+    });
+    if(changed){ this.setState({cards: cards.slice()}); this.saveCards(cards); }
+  }
+
+  migrateHsk21Deck(){
+    const d = this.data;
+    const batch2Hanzi = new Set(d.IMPORT_BATCH_2.map(w => w.hanzi));
+    let changed = false;
+    const cards = this.state.cards;
+    cards.forEach(c => {
+      if(c.deck === 'HSK 2' && batch2Hanzi.has(c.hanzi)){ c.deck = 'HSK 2.1'; changed = true; }
     });
     if(changed){ this.setState({cards: cards.slice()}); this.saveCards(cards); }
   }
