@@ -704,6 +704,76 @@ export function dueIn(ms){
   return 'in ' + Math.round(days/30) + ' mo';
 }
 
+export const SENTENCE_BANK = [
+  { zh:"我是学生。", pinyin:"wǒ shì xué shēng.", en:"I am a student.", words:["我","是","学生"] },
+  { zh:"你好吗？", pinyin:"nǐ hǎo ma?", en:"How are you?", words:["你好","吗"] },
+  { zh:"我很高兴认识你。", pinyin:"wǒ hěn gāo xìng rèn shi nǐ.", en:"I'm very happy to meet you.", words:["我","很","高兴","认识","你"] },
+  { zh:"他是我的朋友。", pinyin:"tā shì wǒ de péng yǒu.", en:"He is my friend.", words:["他","是","我","的","朋友"] },
+  { zh:"今天天气很好。", pinyin:"jīn tiān tiān qì hěn hǎo.", en:"The weather is nice today.", words:["今天","天气","很","好"] },
+  { zh:"我喜欢喝茶。", pinyin:"wǒ xǐ huān hē chá.", en:"I like drinking tea.", words:["我","喜欢","喝","茶"] },
+  { zh:"你叫什么名字？", pinyin:"nǐ jiào shén me míng zi?", en:"What's your name?", words:["你","叫","什么","名字"] },
+  { zh:"我们去学校。", pinyin:"wǒ men qù xué xiào.", en:"We're going to school.", words:["我们","去","学校"] },
+  { zh:"现在几点？", pinyin:"xiàn zài jǐ diǎn?", en:"What time is it now?", words:["现在","几","点"] },
+  { zh:"我爱我的家。", pinyin:"wǒ ài wǒ de jiā.", en:"I love my home.", words:["我","爱","的","家"] },
+  { zh:"谢谢你，再见。", pinyin:"xiè xiè nǐ, zài jiàn.", en:"Thank you, goodbye.", words:["谢谢","你","再见"] },
+  { zh:"对不起，我错了。", pinyin:"duì bu qǐ, wǒ cuò le.", en:"Sorry, I was wrong.", words:["对不起","我","错","了"] },
+  { zh:"他在家吗？", pinyin:"tā zài jiā ma?", en:"Is he home?", words:["他","在","家","吗"] },
+  { zh:"我妈妈是医生。", pinyin:"wǒ mā ma shì yī shēng.", en:"My mom is a doctor.", words:["我","妈妈","是","医生"] },
+  { zh:"这是我的书。", pinyin:"zhè shì wǒ de shū.", en:"This is my book.", words:["这","是","我","的","书"] },
+  { zh:"你想吃什么？", pinyin:"nǐ xiǎng chī shén me?", en:"What do you want to eat?", words:["你","想","吃","什么"] },
+  { zh:"我们是同学。", pinyin:"wǒ men shì tóng xué.", en:"We are classmates.", words:["我们","是","同学"] },
+  { zh:"明天再见。", pinyin:"míng tiān zài jiàn.", en:"See you tomorrow.", words:["明天","再见"] },
+  { zh:"我很忙，没有时间。", pinyin:"wǒ hěn máng, méi yǒu shí jiān.", en:"I'm busy, I have no time.", words:["我","很","忙","没","有","时间"] },
+  { zh:"天气很冷。", pinyin:"tiān qì hěn lěng.", en:"The weather is cold.", words:["天气","很","冷"] },
+  { zh:"这个苹果很好吃。", pinyin:"zhè ge píng guǒ hěn hǎo chī.", en:"This apple is delicious.", words:["这","个","苹果","很","好吃"] },
+  { zh:"我每天学习汉语。", pinyin:"wǒ měi tiān xué xí hàn yǔ.", en:"I study Chinese every day.", words:["我","每天","学习","汉语"] },
+  { zh:"你的猫很漂亮。", pinyin:"nǐ de māo hěn piào liang.", en:"Your cat is beautiful.", words:["你","的","猫","很","漂亮"] },
+  { zh:"他每天运动。", pinyin:"tā měi tiān yùn dòng.", en:"He exercises every day.", words:["他","每天","运动"] },
+  { zh:"我们一起去看电影。", pinyin:"wǒ men yì qǐ qù kàn diàn yǐng.", en:"Let's go watch a movie together.", words:["我们","一起","去","看","电影"] },
+  { zh:"这是什么意思？", pinyin:"zhè shì shén me yì si?", en:"What does this mean?", words:["这","是","什么","意思"] },
+  { zh:"我觉得很好。", pinyin:"wǒ jué de hěn hǎo.", en:"I think it's good.", words:["我","觉得","很","好"] },
+  { zh:"你会说汉语吗？", pinyin:"nǐ huì shuō hàn yǔ ma?", en:"Can you speak Chinese?", words:["你","会","说","汉语","吗"] },
+  { zh:"我想休息。", pinyin:"wǒ xiǎng xiū xi.", en:"I want to rest.", words:["我","想","休息"] },
+  { zh:"他很聪明。", pinyin:"tā hěn cōng ming.", en:"He is very smart.", words:["他","很","聪明"] },
+];
+
+export const SENTENCE_BANK_2 = [
+  { zh:"不好意思，请问洗手间在哪儿？", pinyin:"bù hǎo yì si, qǐng wèn xǐ shǒu jiān zài nǎr?", en:"Excuse me, where's the restroom?" },
+  { zh:"你说的对，我没想到这一点。", pinyin:"nǐ shuō de duì, wǒ méi xiǎng dào zhè yì diǎn.", en:"You're right, I didn't think of that." },
+  { zh:"没事儿，下次注意就行了。", pinyin:"méi shìr, xià cì zhù yì jiù xíng le.", en:"It's fine, just be careful next time." },
+  { zh:"这附近有没有好一点的餐厅？", pinyin:"zhè fù jìn yǒu méi yǒu hǎo yì diǎn de cān tīng?", en:"Is there a decent restaurant near here?" },
+  { zh:"我最近特别忙，都没时间休息。", pinyin:"wǒ zuì jìn tè bié máng, dōu méi shí jiān xiū xi.", en:"I've been really busy lately, no time to rest at all." },
+  { zh:"你先别急，我们再想想办法。", pinyin:"nǐ xiān bié jí, wǒ men zài xiǎng xiǎng bàn fǎ.", en:"Don't rush, let's think of another way." },
+  { zh:"这个多少钱？能不能便宜点儿？", pinyin:"zhè ge duō shǎo qián? néng bu néng pián yi diǎnr?", en:"How much is this? Can you make it a little cheaper?" },
+  { zh:"你放心吧，这件事交给我了。", pinyin:"nǐ fàng xīn ba, zhè jiàn shì jiāo gěi wǒ le.", en:"Don't worry, leave this to me." },
+  { zh:"我今天有点儿不舒服，可能感冒了。", pinyin:"wǒ jīn tiān yǒu diǎnr bù shū fu, kě néng gǎn mào le.", en:"I feel a bit unwell today, I might have a cold." },
+  { zh:"你要不要一起吃饭？我请客。", pinyin:"nǐ yào bu yào yì qǐ chī fàn? wǒ qǐng kè.", en:"Do you want to eat together? It's my treat." },
+  { zh:"路上小心，到了给我发个消息。", pinyin:"lù shang xiǎo xīn, dào le gěi wǒ fā ge xiāo xi.", en:"Be careful on the way, text me when you arrive." },
+  { zh:"这件事说来话长，我们坐下来聊吧。", pinyin:"zhè jiàn shì shuō lái huà cháng, wǒ men zuò xià lái liáo ba.", en:"It's a long story, let's sit down and talk." },
+  { zh:"你别开玩笑了，我是认真的。", pinyin:"nǐ bié kāi wán xiào le, wǒ shì rèn zhēn de.", en:"Stop joking, I'm serious." },
+  { zh:"我们好久没见了，找时间聚一聚吧。", pinyin:"wǒ men hǎo jiǔ méi jiàn le, zhǎo shí jiān jù yi jù ba.", en:"We haven't seen each other in ages, let's get together sometime." },
+  { zh:"这附近堵车堵得厉害，你早点儿出发吧。", pinyin:"zhè fù jìn dǔ chē dǔ de lì hai, nǐ zǎo diǎnr chū fā ba.", en:"Traffic is really bad around here, you should leave early." },
+  { zh:"我随便看看，谢谢。", pinyin:"wǒ suí biàn kàn kan, xiè xie.", en:"I'm just browsing, thanks." },
+  { zh:"你辛苦了，先坐下休息一会儿吧。", pinyin:"nǐ xīn kǔ le, xiān zuò xià xiū xi yí huìr ba.", en:"You've worked hard, sit down and rest for a bit." },
+  { zh:"这道题我不太明白，你能给我讲讲吗？", pinyin:"zhè dào tí wǒ bú tài míng bai, nǐ néng gěi wǒ jiǎng jiang ma?", en:"I don't quite understand this question, can you explain it to me?" },
+  { zh:"你今天怎么这么晚才回来？", pinyin:"nǐ jīn tiān zěn me zhè me wǎn cái huí lai?", en:"Why did you come back so late today?" },
+  { zh:"我们时间不多了，快点儿走吧。", pinyin:"wǒ men shí jiān bù duō le, kuài diǎnr zǒu ba.", en:"We don't have much time left, let's hurry." },
+  { zh:"你要是不舒服，就早点儿去看医生。", pinyin:"nǐ yào shi bù shū fu, jiù zǎo diǎnr qù kàn yī shēng.", en:"If you're not feeling well, go see a doctor soon." },
+  { zh:"这家店的东西又贵又不好吃，别去了。", pinyin:"zhè jiā diàn de dōng xi yòu guì yòu bù hǎo chī, bié qù le.", en:"This shop's food is expensive and not tasty, let's not go there." },
+  { zh:"你别管我了，我自己能解决。", pinyin:"nǐ bié guǎn wǒ le, wǒ zì jǐ néng jiě jué.", en:"Don't worry about me, I can handle it myself." },
+  { zh:"我们出去走走吧，一直待在家里太闷了。", pinyin:"wǒ men chū qu zǒu zou ba, yì zhí dāi zài jiā li tài mēn le.", en:"Let's go out for a walk, staying home all the time is too stuffy." },
+  { zh:"你听我说完，事情不是你想的那样。", pinyin:"nǐ tīng wǒ shuō wán, shì qing bú shì nǐ xiǎng de nà yàng.", en:"Let me finish, things aren't what you think." },
+  { zh:"没关系，谁都会犯错，下次改就好了。", pinyin:"méi guān xi, shéi dōu huì fàn cuò, xià cì gǎi jiù hǎo le.", en:"It's okay, everyone makes mistakes, just fix it next time." },
+  { zh:"你可别忘了明天的约会。", pinyin:"nǐ kě bié wàng le míng tiān de yuē huì.", en:"Don't you forget about tomorrow's appointment." },
+  { zh:"这几天太累了，我想在家好好睡一觉。", pinyin:"zhè jǐ tiān tài lèi le, wǒ xiǎng zài jiā hǎo hǎo shuì yí jiào.", en:"I've been so tired these past few days, I want to sleep well at home." },
+  { zh:"你说得容易，做起来可没那么简单。", pinyin:"nǐ shuō de róng yì, zuò qǐ lái kě méi nà me jiǎn dān.", en:"It's easy to say, but not that simple to do." },
+  { zh:"算了吧，别为这点小事生气了。", pinyin:"suàn le ba, bié wèi zhè diǎn xiǎo shì shēng qì le.", en:"Forget it, don't get angry over such a small thing." },
+];
+
+export const IMPORT_BATCH_SENTENCES_2 = SENTENCE_BANK_2.map(s => ({ hanzi: s.zh, pinyin: s.pinyin, meaning: s.en }));
+
+export const IMPORT_BATCH_SENTENCES = SENTENCE_BANK.map(s => ({ hanzi: s.zh, pinyin: s.pinyin, meaning: s.en }));
+
 export async function runImportBatch(cards, batch, flagKey, deck){
   try{
     const flag = await Store.get(flagKey);
